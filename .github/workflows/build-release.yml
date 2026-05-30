@@ -35,9 +35,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Tk runtime (Linux)
+      - name: Install system libraries (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y python3-tk
+        # python3-tk: Tk runtime for the GUI; libcairo2-dev + pkg-config: needed to
+        # build pycairo (pulled in by xhtml2pdf -> svglib -> rlpycairo) from source,
+        # since there is no pycairo wheel for the runner's Python on Linux.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk libcairo2-dev pkg-config
 
       - name: Install dependencies
         run: |
