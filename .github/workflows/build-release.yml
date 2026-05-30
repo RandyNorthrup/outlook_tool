@@ -10,7 +10,21 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            bin: dist/OutlookTool.exe
+            asset: OutlookTool-Windows.exe
+          - os: macos-latest
+            bin: dist/OutlookTool
+            asset: OutlookTool-macOS
+          - os: ubuntu-latest
+            bin: dist/OutlookTool
+            asset: OutlookTool-Linux
 
     steps:
       - name: Checkout code
@@ -21,24 +35,30 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install Tk runtime (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-tk
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller
-          pip install libpff-python
+          pip install -r requirements.txt pyinstaller
 
       - name: Build executable
-        run: |
-          pyinstaller --onefile --windowed --name OutlookTool --clean main.py
+        run: pyinstaller --onefile --windowed --name OutlookTool --clean main.py
 
-      - name: Upload artifact
+      - name: Stage artifact
+        shell: bash
+        run: cp "${{ matrix.bin }}" "${{ matrix.asset }}"
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OutlookTool
-          path: dist/OutlookTool.exe
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
 
-      - name: Create GitHub Release
+      - name: Attach to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/OutlookTool.exe
+          files: ${{ matrix.asset }}
           generate_release_notes: true

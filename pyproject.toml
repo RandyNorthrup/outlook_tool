@@ -1,0 +1,53 @@
+[project]
+name = "outlook-tool"
+version = "0.2.0"
+description = "Standalone GUI to read and export Outlook PST/OST files without Outlook."
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Randy Northrup" }]
+dependencies = [
+    "libpff-python>=20211114",
+    "xhtml2pdf>=0.2.16",
+    "pikepdf>=8.0",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.6", "pytest>=8.0", "icalendar>=5.0"]
+
+[tool.ruff]
+line-length = 95
+target-version = "py310"
+src = ["."]
+
+[tool.ruff.lint]
+# Strict, broad rule set. Magic numbers (PLR2004), naming (N), bugbears (B),
+# comprehensions (C4), simplifications (SIM), pyupgrade (UP), imports (I),
+# returns (RET), unused-arguments (ARG) and Pylint (PL) are all on.
+#
+# Deliberately NOT enabled:
+#   * PTH  - os.path is used throughout on purpose; a wholesale pathlib rewrite
+#            adds churn/risk without changing behaviour.
+#   * BLE  - reading PST/OST via the libpff C extension can raise arbitrary
+#            exceptions on corrupt records; broad `except Exception` is the
+#            intended robustness pattern and is kept narrow in scope.
+select = [
+    "E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF",
+    "PL", "RET", "TID", "A", "ISC", "ICN", "PIE", "ARG",
+]
+ignore = [
+    # GUI builders are intentionally long / have many branches & locals.
+    "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR0914", "PLR0917",
+    "PLC0415",  # deferred imports (xhtml2pdf/pikepdf) are intentional.
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may touch internals and use asserts freely.
+"tests/*" = ["S101", "PLR2004", "ARG", "BLE001"]
+
+[tool.ruff.lint.flake8-builtins]
+builtins-allowed-modules = ["html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "verify_*.py"]

@@ -7,3 +7,13 @@ dist/
 *.egg-info/
 .eggs/
 *.exe
+temp/
+
+# Virtual environments and tool caches
+.venv/
+venv/
+.ruff_cache/
+.pytest_cache/
+
+# Generated test artifacts
+tests/smoke_screenshot.png
